@@ -1,3 +1,9 @@
+/*
+David Favela Corella
+dxf200002
+CS 4375.003
+*/
+
 #include <iostream>
 #include <fstream>
 #include <string>
