@@ -144,6 +144,5 @@ int main(int argc, char **argv)
     std::cout << "\nCovariance of rm and medv: " << vectorCovariance(rm, medv) <<std::endl;
     std::cout << "Correlation of rm and medv: " << vectorCorrelation(rm, medv) <<std::endl;
 
-    
-    //vectorSorter(rm);
+    return 0;
 }
