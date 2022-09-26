@@ -1,0 +1,155 @@
+---
+title: "Classification"
+author: "David Favela Corella"
+output:
+  pdf_document:
+    toc: yes
+  html_notebook:
+    toc: yes
+---
+
+## Linear Models for Classification
+
+Linear models for classification refers to models that follow a linear trend in the data set but are to be classified according to an attribute. These models tend to have as a target a binary column, which will make it easier to make predictions based on a 0/1 input. Some of the strengths these algorithm have include being easy to implement and interpret. Also, they work well with small data sets. Some weaknesses include being limited to the binary selection, which leads to transforming the data to suit the model.
+
+### Logistic Regression Model
+
+Based on classification of data. While Linear regression allowed for quantitative data, logistic regression focuses on classifying and predicting a data set based on a certain factor. A relatively easy model to construct would imply having a binary attribute from which we'd be able to predict different attributes. It's strengths feature being relatively easy to compute and giving out a nice probability output. Its weakness is its inability to perform outside of binary data.
+
+### Load the data from files
+
+```{r}
+df <- read.csv("bank.csv", header=TRUE)
+str(df)
+```
+
+### Data cleaning & Separate data
+
+We only care about four distinct attributes: credit score, gender, estimated salary, and the credit card
+We transform the gender into F or M, from the binary data provided. We also make sure the credit score and estimated salary remains numeric, while the gender and credit card status become factors.
+
+```{r}
+df <- df[,c(2,4,11,9)]
+df$credit_score <- as.numeric(df$credit_score)
+df[df$gender == 0,]$gender <- "F"
+df[df$gender == 1,]$gender <- "M"
+df$gender <- as.factor(df$gender)
+df$estimated_salary <- as.numeric(df$estimated_salary)
+df$credit_card <- as.factor(df$credit_card)
+head(df)
+str(df)
+```
+
+We run a plot of pairs on the data, dividing the red plots on those without a credit card and those on yellow as the ones with credit cards.
+
+```{r}
+pairs(df[1:3], pch = 21, bg = c("red", "yellow")[unclass(df$credit_card)])
+```
+
+On a close up, we can see that when comparing credit score with estimated salary, there seems to be a higher amount of people with credit cards with a credit score of more than 800.
+
+```{r}
+plot(df$credit_score, df$estimated_salary, pch=21, bg=c("red","yellow")
+     [unclass(df$credit_card)])
+
+```
+
+Check if there are any missing values on the data.
+
+```{r}
+sapply(df, function(x) sum(is.na(x)==TRUE))
+```
+
+## Set the train and test sets for the models
+We set the seed and divide the sets into 80/20 for train and test.
+
+```{r}
+set.seed(1234)
+i <- sample(1:nrow(df), 0.80*nrow(df), replace=FALSE)
+train <- df[i,]
+test <- df[-i,]
+```
+
+
+### Logistic regression
+Create the model based on the credit card.
+
+```{r}
+glm1 <- glm(credit_card ~ ., data=train, family="binomial")
+summary(glm1)
+```
+
+###ROC on Logistic Regression
+
+The ROC test lets us know how good the data fits on the threshold. We can see that it increases along the graph linearly, which is not a bad thing but it would be more reassuring if the positive rate reached 1 early on.
+
+```{r}
+library(ROCR)
+p <- predict(glm1, newdata=test, type="response")
+pr <- prediction(p, test$credit_card)
+prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+plot(prf)
+```
+
+## Test and predict the model
+
+We then use the test data set to test out the model. We see that the accuracy of the model is of .70, which is not bad but also not amazing.
+
+```{r}
+probs <- predict(glm1,  newdata=test, type="response")
+pred <- ifelse(probs> 0.5, 1, 0)
+acc <- mean(pred == test$credit_card)
+print(paste("accuracy = ", acc))
+table(pred, test$credit_card)
+
+```
+
+## Using the GGally library
+
+GGally gives us plots of the logistic model for credit card. It lets us know that there is a trend in several graphs, like in credit score against credit card, credit score against gender, which we didn't look into in this model.
+
+
+```{r}
+library("GGally")
+par(mfrow=c(1,2))
+ggpairs(glm1)
+```
+
+### Bayes Algorithmn
+
+The Naive Bayes algorithm is a classifier algorithm, similar to the logistic regression algorithm. It is easier to implement and interpret. Some of its strengths come from the fact that it works well with small data sets and it can handle high dimensions well. Some issues it has is that is it reliable but doesn't perform as well in large data sets. It also can make guesses for the test values that were not present in the training data set.
+
+Here we set up the Naive Bayes model from the e1071 library.
+
+```{r}
+library(e1071)
+nb1 <- naiveBayes(credit_card~., data=train, family = "binomial")
+nb1
+```
+
+## Evaluate and predict on the test data
+
+We run the test cases and find out that the accuracy of the model is the same as the logistic model created previosly.
+
+```{r}
+p1 <- predict(nb1, newdata=test, type="class")
+table(p1, test$credit_card)
+mean(p1==test$credit_card)
+```
+
+
+## Extracting probabilities
+
+Here we can see some of the probabilities that the model created for being a credit card user or not.
+
+```{r}
+p1_raw <- predict(nb1, newdata=test, type="raw")
+head(p1_raw)
+```
+
+### Results from the models
+
+The results gotten from both models were equal. Both resulted with the accuracy of their algorithms being 0.7015
+I believe we got these results because the data sets were clearly defined and both algorithms work towards the same objective, which is to create a model to predict this binary data.
+
+The classifiers used in these algorithms include the credit card, credit score, gender, and estimated salary. The credit card and gender are both binary values. 0 is no credit card/woman, while 1 is credit card/man. The credit score and estimated salary are both numeric values from which we can formulate our predictions. It is also to be noted that the credit card status is the attribute we base the models on.

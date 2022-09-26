@@ -1,0 +1,154 @@
+---
+title: "Regression"
+author: "David Favela Corella"
+output: 
+  pdf_document: default
+  html_document:
+  df_print: paged
+  html_notebook:
+    toc: true
+---
+
+## Linear Regression
+
+Works by plotting X and Y and finding a relationship between them. This relationship is found by defining other parameters that are included in the linear regression formula, such as w and b. Some of the strengths include being a simple algorithm to implement and working well with data that tends towards a linear pattern. The weakness is that it has a high amount of bias because it assume the data will trend to be linear.
+
+To begin, we get the data from the csv file. We are going to be working with covid-19 data.
+
+```{r}
+df <- read.csv("covid_19.csv", header=TRUE)
+str(df)
+```
+
+Then we clean and separate the data. We are going to use the Confirmed, Deaths, and Active columns for the data analysis. In this case, there's no cleaning as I made sure the data had no null values.
+
+```{r}
+df <- df[,c(8,5,6)]
+df$Confirmed <- as.integer(df$Confirmed)
+df$Deaths <- as.integer(df$Deaths)
+df$Active <- as.integer(df$Active)
+dim(df)
+head(df)
+str(df)
+
+```
+
+Data is then plotted. We plot confirmed cases against deaths and active cases against deaths.
+
+```{r}
+par(mfrow=c(1,2))
+plot(df$Deaths~df$Confirmed, xlab="Confirmed", ylab="Deaths")
+abline(lm(df$Deaths~df$Confirmed), col="red")
+plot(df$Deaths~df$Active, xlab="Actives", ylab="Deaths")
+abline(lm(df$Deaths~df$Active), col="red")
+```
+
+We set the seed fo the model. The data is split in 80/20 for train and test.
+
+```{r}
+set.seed(1234)
+i <- sample(1:nrow(df), nrow(df)*0.80, replace=FALSE)
+train <- df[i,]
+test <- df[-i,]
+
+```
+
+##Linear regression model algorithmn
+The model is created from the deaths and confirmed
+
+```{r}
+lm1 <- lm(Deaths~Confirmed, data=train)
+summary(lm1)
+```
+### Residuals for the linear model of deaths and confirmed
+We can see that there is good indication the model was good, as we can see the pattern in the data.
+Residuals are also lined up well in the normal Q-Q.
+
+```{r}
+par(mfrow=c(2,2))
+plot(lm1)
+```
+### Evaluate the test set on the model
+
+We evaluate the test data unto the model created and we see that the model gives a correlation of 0.93 on the test data, which is really good.
+
+```{r}
+pred1 <- predict(lm1, newdata=test)
+cor1 <- cor(pred1, test$Deaths)
+mse1 <- mean((pred1-test$Deaths)^2) 
+rmse1 <- sqrt(mse1)
+
+print(paste('correlation:', cor1))
+print(paste('mse:', mse1))
+print(paste('rmse:', rmse1))
+```
+
+### Multiple Linear Regression
+For this model, we both the confirmed and active cases from the data set and create the model.
+
+```{r}
+lm2 <- lm(Deaths~Confirmed+Active, data=train)
+summary(lm2)
+```
+We use anova to compare the two different models that we have.
+
+```{r}
+anova(lm1, lm2)
+```
+
+# Evaluate and predict the multiple linear regression model
+We run the test data set on the multiple linear regression model and we see that it has a slightly higher correlation that the previous model created.
+
+```{r}
+pred2 <- predict(lm2, newdata=test)
+cor2 <- cor(pred2, test$Deaths)
+mse2 <- mean((pred2-test$Deaths)^2) 
+rmse2 <- sqrt(mse2)
+
+print(paste('correlation:', cor2))
+print(paste('mse:', mse2))
+print(paste('rmse:', rmse2))
+```
+### Residuals for the multiple linear model of deaths and confirmed + active
+We can see that there is good indication the model was appropriate and good, as we can see the pattern in the data.
+Residuals are also lined up well in the normal Q-Q and in the residuals vs leverage.
+
+```{r}
+par(mfrow=c(2,2))
+plot(lm2)
+```
+
+## Third linear model
+For the third linear model, we use deaths and active data. I tried doing a logarithmic run with deaths but ran into several issues.
+
+```{r}
+lm3 <- lm((Deaths)~Active, data=train)
+summary(lm3)
+```
+
+## Evaluate and predict the third linear model
+We see that the model for death and active is lower than the previous two models.
+
+```{r}
+pred3 <- predict(lm3, newdata=test)
+summary(pred3)
+
+
+cor3 <- cor(pred3, test$Deaths)
+mse3 <- mean((pred3-test$Deaths)^2) 
+rmse3 <- sqrt(mse3)
+print(paste('correlation:', cor3))
+print(paste('mse:', mse3))
+print(paste('rmse:', rmse3))
+```
+## Plot the residuals
+We see the residuals vs fitted tend to be a better fit than previous models, along the normal Q-Q. The residuals vs leverage has a significant skew which dampens it's usability.
+
+```{r}
+par(mfrow=c(2,2))
+plot(lm3)
+
+```
+## Conclusion data
+
+From all the models, the multiple linear regression model had a higher correlation and lower mse, which is good. It was followed by the first model, which was deaths and confirmed cases which had slightly lower and higher correlation and mse. Lastly, the last model, which is deaths and actives. The reason we got these results include the fact that active cases don't necessarily take into account past data and is the most passive data set. The confirmed data includes those that are active and thus may have a better relation with how many have died, which helps in this case.
