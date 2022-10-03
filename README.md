@@ -15,4 +15,11 @@ CS4375 class portfolio
 
 - The notebook for "Regression" can be accessed [here](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Linear%20Models/Classification.pdf)
 
-- The notebook for "Classification" can be accesses [here](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Linear%20Models/Regression.pdf)
+- The notebook for "Classification" can be accessed [here](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Linear%20Models/Regression.pdf)
+
+## Component 3: Machine Learning in C++ from Scratch
+
+- The document for "Data Exploration" can be accessed [here](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Component-3/ML%20from%20Scratch.pdf)
+
+- The code for "Machine Learning in C++ from Scratch" can be accessed [here](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Component-3/MachineLearning-Scratch.cpp)
+
