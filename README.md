@@ -23,3 +23,14 @@ CS4375 class portfolio
 
 - The code for "Machine Learning in C++ from Scratch" can be accessed [here](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Component-3/MachineLearning-Scratch.cpp)
 
+## Component 4: Searching for Similarity
+
+- Linear regression [notebook](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Component-4/Linear_Regression.pdf)
+
+- Logistic regression [notebook](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Component-4/Logistic_Regression.pdf)
+
+- Logistic regression [notebook](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Component-4/Clustering.pdf)
+
+- Logistic regression [notebook](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Component-4/Dimensionality_Reduction.pdf)
+
+- [Narrative](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Component-4/Narrative.pdf)
