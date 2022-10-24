@@ -34,3 +34,14 @@ CS4375 class portfolio
 - Logistic regression [notebook](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Component-4/Dimensionality_Reduction.pdf)
 
 - [Narrative](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Component-4/Narrative.pdf)
+
+## Component 5: Kernel and Ensemble
+
+- Regression [notebook](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Component-5/Regression.nb.html)
+
+- Classification [notebook](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Component-5/Classification.nb.html)
+
+- Ensemble Techniques [notebook](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Component-5/Ensemble%20Techniques.nb.html)
+
+- [Narrative](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Component-5/Kernel%20and%20Ensemble%20Methods.docx)
+
