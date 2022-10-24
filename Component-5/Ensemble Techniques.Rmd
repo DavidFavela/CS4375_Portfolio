@@ -1,0 +1,198 @@
+---
+title: "Ensemble Techniques"
+author: "David Favela Corella"
+output:
+  pdf_document:
+    toc: yes
+  html_notebook:
+    toc: yes
+---
+
+##Ensemble techniques
+
+Ensemble techniques are those that build up their results based on either previous results or by adding up all results at once. In this case, we take a look into XGBoost and adaboost, which employ boosting as their algorithm. We also use the random forest algorithm. Lastly, we do a simple decision tree to compare the results from all these algorithms and see which one is better.
+
+### Load the data from files
+
+```{r}
+df <- read.csv("bank.csv", header=TRUE)
+str(df)
+```
+
+### Data cleaning & Separate data
+
+We only care about four distinct attributes: credit score, gender, estimated salary, and the credit card
+We transform the gender into F or M, from the binary data provided. We also make sure the credit score and estimated salary remains numeric, while the gender and credit card status become factors.
+
+```{r}
+df <- df[,c(2,4,11,9)]
+df$credit_score <- as.numeric(df$credit_score)
+df[df$gender == 0,]$gender <- "F"
+df[df$gender == 1,]$gender <- "M"
+df$gender <- as.factor(df$gender)
+df$estimated_salary <- as.numeric(df$estimated_salary)
+df$credit_card <- as.factor(df$credit_card)
+head(df)
+str(df)
+```
+
+We run a plot of pairs on the data, dividing the red plots on those without a credit card and those on yellow as the ones with credit cards.
+
+```{r}
+pairs(df[1:3], pch = 21, bg = c("red", "yellow")[unclass(df$credit_card)])
+```
+
+On a close up, we can see that when comparing credit score with estimated salary, there seems to be a higher amount of people with credit cards with a credit score of more than 800.
+
+```{r}
+plot(df$credit_score, df$estimated_salary, pch=21, bg=c("red","yellow")
+     [unclass(df$credit_card)])
+
+```
+
+Check if there are any missing values on the data.
+
+```{r}
+sapply(df, function(x) sum(is.na(x)==TRUE))
+```
+
+## Set the train and test sets for the models
+We set the seed and divide the sets into 60/40 for train and test.
+
+```{r}
+set.seed(1234)
+i <- sample(1:nrow(df), 0.60*nrow(df), replace=FALSE)
+train <- df[i,]
+test <- df[-i,]
+```
+
+
+##Logistic Refression on all predictors
+
+We try a simple run on the already known logistic regression model to see how well it performs. As it turns out, it has an accuracy of 0.704, which we'll use as a baseline.
+
+```{r}
+library(mltools)
+glm1 <- glm(credit_card~., data=train, family=binomial)
+probs <- predict(glm1, newdata=test, type="response")
+pred <- ifelse(probs>0.5, 2, 1)
+acc_logreg <- mean(pred==as.integer(test$credit_card))
+mcc_logreg <- mcc(pred, as.integer(test$credit_card))
+print(paste("accuracy=", acc_logreg))
+print(paste("mcc=", mcc_logreg))
+
+```
+
+#Random Forest
+
+We run the random forest algorithm. It creates subsets in a tree and has different data in each one of them.
+
+```{r}
+library(randomForest)
+set.seed(1234)
+rf <- randomForest(credit_card~., data=train, importance=TRUE)
+rf
+
+```
+
+##Testing random forest
+
+Random forest has a accuracy of 0.704, which is acceptable.
+
+```{r}
+pred <- predict(rf, newdata=test, type="response")
+acc_rf <- mean(pred==test$credit_card)
+mcc_rf <- mcc(factor(pred), test$credit_card)
+print(paste("accuracy=", acc_rf))
+print(paste("mcc=", mcc_rf))
+
+```
+
+
+##Boosting from adabag library
+
+We use bosoting through adabag.
+
+```{r}
+library(adabag)
+```
+
+
+```{r}
+adab1 <- boosting(credit_card~., data=train, boos=TRUE, mfinal=20, coeflearn='Breiman')
+summary(adab1)
+
+```
+
+#Testing with adabag
+
+Similar to random forest, we also have an accuracy of 0.704
+
+```{r}
+pred <- predict(adab1, newdata=test, type="response")
+acc_adabag <- mean(pred$class==test$credit_card)
+mcc_adabag <- mcc(factor(pred$class), test$credit_card)
+print(paste("accuracy=", acc_adabag))
+print(paste("mcc=", mcc_adabag))
+
+```
+
+
+##XGBoost
+
+Boosting using XGboost.
+
+```{r}
+library(xgboost)
+train_label <- ifelse(train$credit_card==1, 1, 0)
+train_matrix <- data.matrix(train[, -4])
+model <- xgboost(data=train_matrix, label=train_label,
+nrounds=100, objective='binary:logistic')
+
+```
+
+#Testing using XGBoost
+
+It had a lower accuracy than previous algorithms.
+
+```{r}
+test_label <- ifelse(test$credit_card==1, 1, 0)
+test_matrix <- data.matrix(test[, -4])
+probs4 <- predict(model, test_matrix)
+pred4 <- ifelse(probs4>0.5, 1, 0)
+acc_xg <- mean(pred4==test_label)
+mcc_xg <- mcc(pred4, test_label)
+print(paste("accuracy=", acc_xg))
+print(paste("mcc=", mcc_xg))
+
+```
+
+
+##Simple Decision Tree Method
+
+```{r}
+library(tree)
+```
+
+
+```{r}
+set.seed(1958)
+tree_card <- tree(credit_card~., data=train)
+pred <- predict(tree_card, newdata=test, type="class")
+table(pred, test$credit_card)
+
+```
+
+#Results
+
+Equal result to adabag and random forest.
+
+```{r}
+mean(pred==test$credit_card)
+
+```
+
+
+#Conclusion
+
+All the algorithms performed equally but XGBoost, which was an anomaly. It may have had something to do with how boosting is performed in that model and why it differs from the other ones.

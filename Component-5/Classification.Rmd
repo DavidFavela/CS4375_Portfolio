@@ -1,0 +1,157 @@
+---
+title: "Classification"
+author: "David Favela Corella"
+output:
+  pdf_document:
+    toc: yes
+  html_notebook:
+    toc: yes
+---
+
+###SVM Classification
+
+SVm classification works by separating the data into two classes. It being separated by the hyperplane line which has margins on both side. These margins are formed by support vectors and allow easy classification of data based on where the tested data is located on the hyperplane.
+
+We also take back a look into classification and the old way of doing it. While Linear regression allowed for quantitative data, logistic regression focuses on classifying and predicting a data set based on a certain factor.
+
+### Load the data from files
+
+```{r}
+df <- read.csv("bank.csv", header=TRUE)
+str(df)
+```
+
+### Data cleaning & Separate data
+
+We only care about four distinct attributes: credit score, gender, estimated salary, and the credit card
+We transform the gender into F or M, from the binary data provided. We also make sure the credit score and estimated salary remains numeric, while the gender and credit card status become factors.
+
+```{r}
+df <- df[,c(2,4,11,9)]
+df$credit_score <- as.numeric(df$credit_score)
+df[df$gender == 0,]$gender <- "F"
+df[df$gender == 1,]$gender <- "M"
+df$gender <- as.factor(df$gender)
+df$estimated_salary <- as.numeric(df$estimated_salary)
+df$credit_card <- as.numeric(df$credit_card)
+head(df)
+str(df)
+```
+
+We run a plot of pairs on the data, dividing the red plots on those without a credit card and those on yellow as the ones with credit cards.
+
+```{r}
+pairs(df[1:3], pch = 21, bg = c("red", "yellow")[unclass(df$credit_card)])
+```
+
+On a close up, we can see that when comparing credit score with estimated salary, there seems to be a higher amount of people with credit cards with a credit score of more than 800.
+
+```{r}
+plot(df$credit_score, df$estimated_salary, pch=21, bg=c("red","yellow")
+     [unclass(df$credit_card)])
+
+```
+
+Check if there are any missing values on the data.
+
+```{r}
+sapply(df, function(x) sum(is.na(x)==TRUE))
+```
+
+## Set the train and test sets for the models
+We set the seed and divide the sets into 80/20 for train and test.
+
+```{r}
+set.seed(1234)
+i <- sample(1:nrow(df), 0.60*nrow(df), replace=FALSE)
+train <- df[i,]
+test <- df[-i,]
+```
+
+
+### Linear SVM Classification
+Create the model based on the credit card. We first try running a model with cost 10. Then we look into if it is the best one by running different costs for the algorithm by tuning it.
+
+```{r}
+library(e1071)
+svm1 <- svm(credit_card~., data=train, kernel="linear", cost=10, scale=TRUE)
+tune_svm1 <- tune(svm, credit_card~., data = train, kernel="linear",
+                  ranges= list(cost=c(0.001, 0.01, 0.1, 1, 5, 10)))
+summary(svm1)
+summary(tune_svm1)
+
+```
+
+The model with the lowest error and thus best choice was the algorithm with a cost of 10.
+
+## Test and predict the model
+
+We then use the test data set to test out the model. We see that the accuracy of the model is of .70, which is not bad but also not amazing.
+
+```{r}
+probs <- predict(tune_svm1$best.model,  newdata=test, type="response")
+pred <- ifelse(probs> 0.5, 1, 0)
+acc <- mean(pred == test$credit_card)
+print(paste("accuracy = ", acc))
+table(pred, test$credit_card)
+
+```
+
+### Polynomial SVM Classification
+Create the model based on the credit card. This time, all the models had the same error and disperion, meaning all of them can be used.
+
+```{r}
+library(e1071)
+tune_svm2 <- tune(svm, credit_card~., data = train, kernel="polynomial",
+                  ranges= list(cost=c(0.001, 0.01, 0.1, 1, 5, 10)))
+summary(tune_svm2)
+
+```
+
+
+## Test and predict the model
+
+We then use the test data set to test out the model. We see that the accuracy of the model is of .704, which is not bad but also not amazing. It also perfoms the same as the linear model.
+
+```{r}
+probs2 <- predict(tune_svm2$best.model,  newdata=test, type="response")
+pred2 <- ifelse(probs> 0.5, 1, 0)
+acc2 <- mean(pred2 == test$credit_card)
+print(paste("accuracy = ", acc2))
+table(pred2, test$credit_card)
+
+```
+
+### Radial SVM Classification
+Create the model based on the credit card. This time we use the radial kernel, which includes the gamma parameter. 
+
+```{r}
+library(e1071)
+tune_svm3 <- tune(svm, credit_card~.,  data=train, kernel="radial",
+ranges=list(cost=c(0.001, 0.01, 0.1, 1, 5),
+gamma=c(0.5,1,2,3)))
+
+summary(tune_svm3)
+
+```
+
+
+## Test and predict the model
+
+We then use the test data set to test out the model. We see that the accuracy of the model is of .704. 
+
+```{r}
+probs3 <- predict(tune_svm3$best.model,  newdata=test, type="response")
+pred3 <- ifelse(probs3> 0.5, 1, 0)
+acc3 <- mean(pred3 == test$credit_card)
+print(paste("accuracy = ", acc3))
+table(pred3, test$credit_card)
+
+```
+
+
+##Conclusion
+
+Overall, all algorithms performed equally in classification. I would choose to use an algorithm thathas the lowest computer power, as it would lessen the burden the computer takes while running these intense algorithms. Also, the regular glm model has teh same accuracy and in a much lesser time.
+
+

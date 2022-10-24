@@ -1,0 +1,208 @@
+---
+title: "Regression"
+author: "David Favela Corella"
+output: 
+  html_notebook:
+    toc: true
+  html_document:
+  df_print: paged
+  pdf_document: default
+---
+
+##SVM Regression
+
+SVM regression allows for creating a model for prediction not based on classification.It tries to find the relationship between parameters. Its strengths include flexibility, as it allows to change the cost of the algorithm and the gamma, if using the radial kernel. 
+
+In this notebook, we will go over the SVM results, as well as the results created by the regular linear regression model.
+
+
+as a recap, linear regression works by plotting X and Y and finding a relationship between them. 
+
+To begin, we get the data from the csv file. We are going to be working with covid-19 data.
+
+#Getting the data
+
+```{r}
+df <- read.csv("covid_19.csv", header=TRUE)
+str(df)
+```
+
+Then we clean and separate the data. We are going to use the Confirmed, Deaths, and Active columns for the data analysis. In this case, there's no cleaning as I made sure the data had no null values.
+
+```{r}
+df <- df[,c(8,5,6)]
+df$Confirmed <- as.integer(df$Confirmed)
+df$Deaths <- as.integer(df$Deaths)
+df$Active <- as.integer(df$Active)
+dim(df)
+head(df)
+str(df)
+
+```
+
+Data is then plotted. We plot confirmed cases against deaths and active cases against deaths.
+
+```{r}
+par(mfrow=c(1,2))
+plot(df$Deaths~df$Confirmed, xlab="Confirmed", ylab="Deaths")
+abline(lm(df$Deaths~df$Confirmed), col="red")
+plot(df$Deaths~df$Active, xlab="Actives", ylab="Deaths")
+abline(lm(df$Deaths~df$Active), col="red")
+```
+
+##Separating the data into train/test
+
+We set the seed fo the model. The data is split in 80/20 for train and test.
+
+```{r}
+set.seed(1234)
+i <- sample(1:nrow(df), nrow(df)*0.60, replace=FALSE)
+train <- df[i,]
+test <- df[-i,]
+
+```
+
+
+#Tuning the best SVM Model
+
+tune runs the svm algorithm in different levels of cost. From all of the costs, it will then choose the best cost to produce the best model. The kernel used is linear.
+
+```{r}
+tune_svm1 <- tune(svm, Deaths~., data = train, kernel="linear",
+                  ranges= list(cost=c(0.001, 0.01, 0.1, 1, 5, 10, 100)))
+
+summary(tune_svm1)
+```
+
+##Predicting using the best SVM model
+
+The results above show that the SVM model with a cost of 100 gave the least amount of error, making it the best model for prediction. We will then run it to predict and find the correlation in the model.
+
+```{r}
+pred <- predict(tune_svm1$best.model, newdata=test)
+cor_svm1_tune <- cor(pred, test$Deaths)
+mse_svm1_tune <- mean((pred - test$Deaths)^2)
+print(paste("Correlation = ", cor_svm1_tune))
+print(paste("MSE = ", mse_svm1_tune))
+
+```
+
+As it turns out, the model had a correlation of 0.944, which is quite high.
+
+
+###Linear regression using the old model
+
+We evaluate the test data unto the model created and we see that the model gives a correlation of 0.93 on the test data, which is really good.
+
+```{r}
+lm1 <- lm(Deaths~., data=train)
+pred <- predict(lm1, newdata=test)
+cor_lm1 <- cor(pred, test$Deaths)
+mse_lm1 <- mean((pred-test$Deaths)^2)
+```
+
+
+```{r}
+pred1 <- predict(lm1, newdata=test)
+cor1 <- cor(pred1, test$Deaths)
+mse1 <- mean((pred1-test$Deaths)^2) 
+rmse1 <- sqrt(mse1)
+
+print(paste('correlation:', cor1))
+print(paste('mse:', mse1))
+print(paste('rmse:', rmse1))
+```
+
+The common method for linear regression gives a correlation of 0.9443, similar but slightly higher than the linear SVM model created.
+
+### Residuals for the linear model of deaths and confirmed
+We can see that there is good indication the model was good, as we can see the pattern in the data.
+Residuals are also lined up well in the normal Q-Q.
+
+```{r}
+par(mfrow=c(2,2))
+plot(lm1)
+```
+
+
+
+###SVM With polynomial kernels
+
+The polynomial kernel for SVM allows for a change in the line it fits the data to. Instead of being linear, it allows for some of the data that would not fit into the linear kernel to be included and theoretically may lead to a higher correlation.
+
+I first run a trial version of the polynomial kernel with a cost of 10
+
+```{r}
+svm2 <- svm(Deaths~., data=train, kernel="polynomial", cost=10, scale=TRUE)
+summary(svm2)
+```
+
+##Test Polynomial SVM
+
+```{r}
+predpol <- predict(svm2, newdata=test)
+cor_svm1_tune_pol <- cor(predpol, test$Deaths)
+mse_svm1_tune_pol <- mean((predpol - test$Deaths)^2)
+print(paste("Correlation = ", cor_svm1_tune_pol))
+print(paste("MSE = ", mse_svm1_tune_pol))
+
+```
+
+Testing the model, we see it has a low correlation compared to the other models, which is why we now tune the model to see if there's a better cost to use for the model.
+
+
+##Tuning the best SVM model with a polynomial Kernel
+
+We tune the model to see which cost is better.
+
+```{r}
+tune_svm1 <- tune(svm, Deaths~., data = train, kernel="polynomial",
+                  ranges= list(cost=c(0.001, 0.01, 0.1, 1, 5, 10, 100)))
+
+summary(tune_svm1)
+```
+
+# Evaluate and predict the best SVM polynomial model
+We run the test data set on the model with cost = 0.001, which had the lowest error of them all.
+
+```{r}
+predpoly <- predict(tune_svm1$best.model, newdata=test)
+cor_svm1_tune_poly <- cor(predpoly, test$Deaths)
+mse_svm1_tune_poly <- mean((predpoly - test$Deaths)^2)
+print(paste("Correlation = ", cor_svm1_tune_poly))
+print(paste("MSE = ", mse_svm1_tune_poly))
+
+```
+The model still had a low correlation.
+
+
+## SVM with radial kernel
+For the third model, we use the radial kernel. In this case we incorporate the use of gammas, which theoretically lower variance and would lead to better results. I also lowered the highest cost, as running it with a cost of 10 and higher implied the algorithm would run for hours.
+
+```{r}
+tune_svm1 <- tune(svm, Deaths~.,  data=train, kernel="radial",
+ranges=list(cost=c(0.001, 0.01, 0.1, 1, 5),
+gamma=c(0.5,1,2,3)))
+
+
+summary(tune_svm1)
+```
+
+## Evaluate and predict radial svm model
+We evaluate the best model, which was the one with a cost of 5 and gamma of 1.
+
+```{r}
+
+pred_radial <- predict(tune_svm1$best.model, newdata=test)
+cor_svm1_tune_radial <- cor(pred_radial, test$Deaths)
+mse_svm1_tune_radial <- mean((pred_radial - test$Deaths)^2)
+print(paste("Correlation = ", cor_svm1_tune_radial))
+print(paste("MSE = ", mse_svm1_tune_radial))
+
+```
+
+The correlation of the model is 0.98, much higher than the past models.
+
+## Conclusion data
+
+Looking back, we can see that the radial kernel SVM performed the best out of all the algorithms. I believe the inclusion of the gamma parameter increased highly the correlation by lowering the bias. The worst performing algorithm was the polynomial kernel, having a correlation lower than 0.8, while the other algorithms both had a correlation of 0.94, which is good.
