@@ -37,11 +37,11 @@ CS4375 class portfolio
 
 ## Component 5: Kernel and Ensemble
 
-- Regression [notebook](https://davidfavela.github.io/CS4375_Portfolio/blob/main/Component-5/Regression.nb.html)
+- Regression [notebook](https://davidfavela.github.io/CS4375_Portfolio/Component-5/Regression.nb.html)
 
-- Classification [notebook](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Component-5/Classification.nb.html)
+- Classification [notebook](https://davidfavela.github.io/CS4375_Portfolio/Component-5/Classification.nb.html)
 
-- Ensemble Techniques [notebook](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Component-5/Ensemble%20Techniques.nb.html)
+- Ensemble Techniques [notebook](https://davidfavela.github.io/CS4375_Portfolio/Component-5/Ensemble%20Techniques.nb.html)
 
-- [Narrative](https://github.com/DavidFavela/CS4375_Portfolio/blob/main/Component-5/Kernel%20and%20Ensemble%20Methods.docx)
+- [Narrative](https://davidfavela.github.io/CS4375_Portfolio/Component-5/Kernel%20and%20Ensemble%20Methods.docx)
 
