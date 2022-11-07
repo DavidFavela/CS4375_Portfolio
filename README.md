@@ -46,4 +46,4 @@ CS4375 class portfolio
 - [Narrative](https://davidfavela.github.io/CS4375_Portfolio/Component-5/Kernel%20and%20Ensemble%20Methods.docx)
 
 ## Component 6: ML with sklearn
-- [view](https://davidfavela.github.io/CS4375_Portfolio/Component-6) ML with sklearn
+- [view](https://davidfavela.github.io/CS4375_Portfolio/Component-6/ML%20with%20sklearn.pdf) ML with sklearn
