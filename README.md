@@ -47,3 +47,6 @@ CS4375 class portfolio
 
 ## Component 6: ML with sklearn
 - [view](https://davidfavela.github.io/CS4375_Portfolio/Component-6/ML%20with%20sklearn.pdf) ML with sklearn
+
+## Component 7: Image Classification
+- [view](https://davidfavela.github.io/CS4375_Portfolio/main/Component-7/pizzaornot.pdf) image classification
